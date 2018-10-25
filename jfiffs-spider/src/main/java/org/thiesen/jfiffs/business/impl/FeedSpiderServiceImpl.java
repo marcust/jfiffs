@@ -33,6 +33,7 @@ import org.jsoup.nodes.Document;
 import org.thiesen.jfiffs.business.FeedSpiderService;
 import org.thiesen.jfiffs.persistence.FeedDao;
 import org.thiesen.jfiffs.persistence.FeedEntryDao;
+import org.thiesen.jfiffs.persistence.impl.FeedEntryTable;
 import org.thiesen.jfiffs.persistence.model.FeedDbo;
 import org.thiesen.jfiffs.persistence.model.FeedEntryDbo;
 import org.thiesen.jfiffs.persistence.model.FeedEntryState;
@@ -40,6 +41,8 @@ import org.thiesen.jfiffs.persistence.model.FeedEntryState;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ForkJoinPool;
@@ -81,7 +84,12 @@ public class FeedSpiderServiceImpl implements FeedSpiderService {
 
             feedDao.updateLastAttempt(feedDbo.getId());
 
-            SyndFeed feed = input.build(new XmlReader(URI.create(feedDbo.getUrl()).toURL()));
+            final URL url = URI.create(feedDbo.getUrl()).toURL();
+            final URLConnection urlConnection = url.openConnection();
+            urlConnection.setConnectTimeout(10000);
+            urlConnection.setReadTimeout(10000);
+
+            SyndFeed feed = input.build(new XmlReader(urlConnection));
 
             feed.getEntries().parallelStream()
                     .forEach(syndEntry -> handleEntry(feedDbo.getId(), syndEntry));
@@ -112,6 +120,11 @@ public class FeedSpiderServiceImpl implements FeedSpiderService {
             if (existingEntry.getState() == FeedEntryState.FAILED) {
                 return;
             }
+
+            if (existingEntry.getState() == FeedEntryState.COMPLETED) {
+                return;
+            }
+
             if (existingEntry.getFailCount() >= 3) {
                 feedEntryDao.markFailed(existingEntry.getId());
                 return;
