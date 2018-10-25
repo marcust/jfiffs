@@ -1,18 +1,136 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>org.thiesen.jfiffs</groupId>
-  <artifactId>jfiffs-spider</artifactId>
-  <packaging>jar</packaging>
-  <version>1.0-SNAPSHOT</version>
-  <name>jfiffs-spider</name>
-  <url>http://maven.apache.org</url>
-  <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>3.8.1</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.thiesen.jfiffs</groupId>
+        <artifactId>root-pom</artifactId>
+        <version>0.1-SNAPSHOT</version>
+    </parent>
+
+    <groupId>org.thiesen.jfiffs</groupId>
+    <artifactId>jfiffs-spider</artifactId>
+    <packaging>jar</packaging>
+    <version>1.0-SNAPSHOT</version>
+
+    <name>jfiffs-spider</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.jzenith</groupId>
+            <artifactId>jzenith-core</artifactId>
+            <version>0.2-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>be.ceau</groupId>
+            <artifactId>opml-parser</artifactId>
+            <version>2.0.0</version>
+        </dependency>
+
+        <!-- Database -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.2.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jooq</groupId>
+            <artifactId>jooq</artifactId>
+            <version>3.11.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>5.2.1</version>
+        </dependency>
+
+        <!-- Libraries -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>27.0-jre</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.8.1</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.6</version>
+        </dependency>
+        <dependency>
+            <groupId>one.util</groupId>
+            <artifactId>streamex</artifactId>
+            <version>0.6.7</version>
+        </dependency>
+
+        <!-- Compile Time tools -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs-annotations</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>3.8.1</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>${docker.maven.plugin.version}</version>
+                <configuration>
+                    <images>
+                        <image>
+                            <alias>postgres</alias>
+                            <name>postgres:10</name>
+                            <run>
+                                <wait>
+                                    <log>database system is ready to accept connections</log>
+                                    <time>20000</time>
+                                </wait>
+                                <ports>
+                                    <port>5432:5432</port>
+                                </ports>
+                                <env>
+                                    <POSTGRES_DB>jfiffs</POSTGRES_DB>
+                                    <POSTGRES_USER>jfiffs</POSTGRES_USER>
+                                    <POSTGRES_PASSWORD>jfiffs</POSTGRES_PASSWORD>
+                                </env>
+                            </run>
+                        </image>
+                    </images>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>start</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>stop</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>
