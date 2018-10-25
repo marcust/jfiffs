@@ -88,8 +88,9 @@ public class FeedEntryDaoImpl implements FeedEntryDao {
         return dslContext.update(FeedEntryTable.TABLE)
                 .set(FeedEntryTable.LINK_CONTENT_HTML_FIELD, linkContentHtml)
                 .set(FeedEntryTable.LINK_CONTENT_TEXT_FIELD, linkContentText)
+                .set(FeedEntryTable.STATE_FIELD, FeedEntryState.COMPLETE)
                 .where(FeedEntryTable.ID_FIELD.eq(id))
-                .execute() > 0;
+                .execute() > 0; 
     }
 
     @Override
