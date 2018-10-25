@@ -18,8 +18,10 @@ package org.thiesen.jfiffs.opml;
 import be.ceau.opml.OpmlParser;
 import be.ceau.opml.entity.Opml;
 import be.ceau.opml.entity.Outline;
+import com.google.common.base.Stopwatch;
 import com.google.inject.Inject;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.thiesen.jfiffs.model.Feed;
 import org.thiesen.jfiffs.persistence.FeedDao;
@@ -28,6 +30,7 @@ import org.thiesen.jfiffs.persistence.model.FeedDbo;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+@Slf4j
 public class OpmlImporter {
 
     private final FeedDao dao;
@@ -41,9 +44,13 @@ public class OpmlImporter {
     public void importOpml() {
         final Opml opml = new OpmlParser().parse(this.getClass().getResourceAsStream("/feeds.opml"));
 
+        final Stopwatch stopwatch = Stopwatch.createStarted();
+
+        log.info("Starting OPML import");
         opml.getBody().getOutlines().stream()
                 .flatMap(this::importOutline)
                 .forEach(this::syncWithDatabase);
+        log.info("OPML import toook {}", stopwatch.stop());
     }
 
     private void syncWithDatabase(Feed feed) {
