@@ -3,6 +3,8 @@ package org.thiesen.jfiffs;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import org.jzenith.core.JZenith;
+import org.thiesen.jfiffs.business.BusinessModule;
+import org.thiesen.jfiffs.business.FeedSpiderService;
 import org.thiesen.jfiffs.opml.OpmlImporter;
 import org.thiesen.jfiffs.persistence.PersistenceModule;
 import org.thiesen.jfiffs.persistence.migration.FlywayMigration;
@@ -15,9 +17,12 @@ public class App {
     @Inject
     private OpmlImporter opmlImporter;
 
-    public static void main( String[] args ) {
+    @Inject
+    private FeedSpiderService feedSpiderService;
+
+    public static void main(String[] args) {
         final Injector injector = JZenith.application(args)
-                .withModules(new PersistenceModule())
+                .withModules(new PersistenceModule(), new BusinessModule())
                 .createInjectorForTesting();
 
         final App app = new App();
@@ -31,6 +36,7 @@ public class App {
         migration.migrate();
         opmlImporter.importOpml();
 
+        feedSpiderService.run();
 
     }
 
