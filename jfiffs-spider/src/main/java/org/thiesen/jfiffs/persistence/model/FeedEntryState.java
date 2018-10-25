@@ -13,8 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thiesen.jfiffs.business;
+package org.thiesen.jfiffs.persistence.model;
 
-public interface FeedSpiderService {
-    void run();
+import org.jooq.EnumType;
+import org.jooq.Schema;
+
+import static org.thiesen.jfiffs.persistence.model.FeedState.SCHEMA;
+
+public enum FeedEntryState implements EnumType {
+
+    NEW, COMPLETE, FAILED;
+
+    @Override
+    public String getLiteral() {
+        return this.name();
+    }
+
+    @Override
+    public String getName() {
+        return "feed_entry_state";
+    }
+
+    @Override
+    public Schema getSchema() {
+        return SCHEMA;
+    }
+
 }
