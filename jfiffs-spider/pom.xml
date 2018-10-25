@@ -138,6 +138,7 @@
 
                             <build>
                                 <from>arm32v7/openjdk:11</from>
+                                <imagePullPolicy>always</imagePullPolicy>
                                 <ports>
                                     <port>8080</port>
                                 </ports>
