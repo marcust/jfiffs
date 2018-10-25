@@ -22,7 +22,7 @@ import static org.thiesen.jfiffs.persistence.model.FeedState.SCHEMA;
 
 public enum FeedEntryState implements EnumType {
 
-    NEW, COMPLETE, FAILED;
+    NEW, COMPLETED, FAILED;
 
     @Override
     public String getLiteral() {
