@@ -19,11 +19,13 @@ import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import lombok.NonNull;
 import org.jooq.DSLContext;
+import org.jooq.Record3;
 import org.jooq.Record4;
 import org.jooq.Select;
 import org.thiesen.jfiffs.common.persistence.model.FeedEntryState;
 import org.thiesen.jfiffs.common.persistence.FeedEntryDao;
 import org.thiesen.jfiffs.common.persistence.model.FeedEntryDbo;
+import org.thiesen.jfiffs.common.persistence.model.NormalizedTextFeedEntryDbo;
 import org.thiesen.jfiffs.common.persistence.model.TextFeedEntryDbo;
 
 import java.time.Instant;
@@ -128,5 +130,20 @@ public class FeedEntryDaoImpl implements FeedEntryDao {
                 .set(FeedEntryTable.STATE, FeedEntryState.NORMALIZED)
                 .where(FeedEntryTable.ID.eq(id))
                 .execute() > 0;
+    }
+
+    @Override
+    public List<NormalizedTextFeedEntryDbo> listNormalizedSince(Instant createdAfter) {
+        final Select<Record3<UUID, String, String>> select = dslContext
+                .select(FeedEntryTable.ID, FeedEntryTable.TITLE,
+                        FeedEntryTable.NORMALIZED_TEXT)
+                .from(FeedEntryTable.TABLE)
+                .where(FeedEntryTable.STATE.eq(FeedEntryState.NORMALIZED))
+                .and(FeedEntryTable.CREATED.gt(createdAfter));
+
+        select.execute();
+
+        return select.getResult().map(record -> new NormalizedTextFeedEntryDbo(record.component1(), record.component2(), record.component3()));
+
     }
 }

@@ -16,6 +16,7 @@
 package org.thiesen.jfiffs.common.persistence;
 
 import org.thiesen.jfiffs.common.persistence.model.FeedEntryDbo;
+import org.thiesen.jfiffs.common.persistence.model.NormalizedTextFeedEntryDbo;
 import org.thiesen.jfiffs.common.persistence.model.TextFeedEntryDbo;
 
 import java.time.Instant;
@@ -37,4 +38,6 @@ public interface FeedEntryDao {
     List<TextFeedEntryDbo> listCompletedSince(Instant createdAfter);
 
     boolean updateNormalization(UUID id, String language, Integer wordCount, String normalizedText);
+
+    List<NormalizedTextFeedEntryDbo> listNormalizedSince(Instant createdAfter);
 }
