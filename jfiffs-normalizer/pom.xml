@@ -1,19 +1,17 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
-
     <parent>
         <groupId>org.thiesen.jfiffs</groupId>
         <artifactId>root-pom</artifactId>
         <version>0.1-SNAPSHOT</version>
     </parent>
-
     <groupId>org.thiesen.jfiffs</groupId>
-    <artifactId>jfiffs-spider</artifactId>
-    <packaging>jar</packaging>
-    <version>1.0-SNAPSHOT</version>
-
-    <name>jfiffs-spider</name>
+    <artifactId>jfiffs-normalizer</artifactId>
+    <version>0.1-SNAPSHOT</version>
+    <name>jfiffs-clusterer</name>
 
     <dependencies>
         <dependency>
@@ -21,43 +19,16 @@
             <artifactId>jfiffs-common</artifactId>
             <version>0.1-SNAPSHOT</version>
         </dependency>
-
         <dependency>
-            <groupId>be.ceau</groupId>
-            <artifactId>opml-parser</artifactId>
-            <version>2.0.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.rometools</groupId>
-            <artifactId>rome</artifactId>
-            <version>1.11.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jsoup</groupId>
-            <artifactId>jsoup</artifactId>
-            <version>1.11.3</version>
-        </dependency>
-
-     <!-- Libraries -->
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>27.0-jre</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.8.1</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>2.6</version>
-        </dependency>
-        <dependency>
-            <groupId>one.util</groupId>
-            <artifactId>streamex</artifactId>
-            <version>0.6.7</version>
+            <groupId>com.optimaize.languagedetector</groupId>
+            <artifactId>language-detector</artifactId>
+            <version>0.6</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Compile Time tools -->
@@ -76,8 +47,8 @@
             <version>3.8.1</version>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
+
     <build>
         <plugins>
             <plugin>
@@ -89,7 +60,7 @@
                     <shadedClassifierName>fat</shadedClassifierName>
                     <transformers>
                         <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                            <mainClass>org.thiesen.jfiffs.spider.SpiderApp</mainClass>
+                            <mainClass>org.thiesen.jfiffs.normalizer.NormalizationApp</mainClass>
                         </transformer>
                         <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer">
                         </transformer>
@@ -111,8 +82,8 @@
                 <configuration>
                     <images>
                         <image>
-                            <alias>spider-armhf</alias>
-                            <name>marcust/jfiffs-spider-armhf</name>
+                            <alias>normalizer-armhf</alias>
+                            <name>marcust/jfiffs-normalizer-armhf</name>
 
                             <build>
                                 <from>arm32v7/openjdk:11</from>
@@ -129,35 +100,16 @@
                                         <files>
                                             <file>
                                                 <source>
-                                                    ${project.build.directory}/jfiffs-spider-${project.version}-fat.jar
+                                                    ${project.build.directory}/jfiffs-normalizer-${project.version}-fat.jar
                                                 </source>
                                             </file>
                                         </files>
                                     </inline>
                                 </assembly>
                                 <cmd>
-                                    <shell>java -jar /maven/jfiffs-spider-${project.version}-fat.jar</shell>
+                                    <shell>java -jar /maven/jfiffs-normalizer-${project.version}-fat.jar</shell>
                                 </cmd>
                             </build>
-                        </image>
-
-                        <image>
-                            <alias>postgres</alias>
-                            <name>postgres:10</name>
-                            <run>
-                                <wait>
-                                    <log>database system is ready to accept connections</log>
-                                    <time>20000</time>
-                                </wait>
-                                <ports>
-                                    <port>5432:5432</port>
-                                </ports>
-                                <env>
-                                    <POSTGRES_DB>jfiffs</POSTGRES_DB>
-                                    <POSTGRES_USER>jfiffs</POSTGRES_USER>
-                                    <POSTGRES_PASSWORD>jfiffs</POSTGRES_PASSWORD>
-                                </env>
-                            </run>
                         </image>
                     </images>
                 </configuration>
@@ -180,5 +132,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>
