@@ -30,7 +30,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <arguments />
+        <arguments/>
 
         <java.version>11</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
@@ -41,8 +41,10 @@
     </properties>
 
     <modules>
+    <module>jfiffs-common</module>
         <module>jfiffs-spider</module>
-    </modules>
+    <module>jfiffs-clusterer</module>
+  </modules>
 
     <build>
         <pluginManagement>

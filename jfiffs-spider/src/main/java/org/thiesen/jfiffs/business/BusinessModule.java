@@ -22,7 +22,7 @@ public class BusinessModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        bind(FeedSpiderService.class).to(FeedSpiderServiceImpl.class);
+        bind(FeedSpiderService.class).to(FeedSpiderServiceImpl.class).asEagerSingleton();
 
     }
 }
