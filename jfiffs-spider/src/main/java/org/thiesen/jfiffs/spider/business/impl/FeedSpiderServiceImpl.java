@@ -1,12 +1,12 @@
 /**
  * Copyright © 2018 Marcus Thiesen (marcus@thiesen.org)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,20 +28,24 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import one.util.streamex.StreamEx;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.config.ConnectionConfig;
+import org.apache.http.config.SocketConfig;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.thiesen.jfiffs.spider.business.FeedSpiderService;
 import org.thiesen.jfiffs.common.persistence.FeedDao;
 import org.thiesen.jfiffs.common.persistence.FeedEntryDao;
 import org.thiesen.jfiffs.common.persistence.model.FeedDbo;
 import org.thiesen.jfiffs.common.persistence.model.FeedEntryDbo;
 import org.thiesen.jfiffs.common.persistence.model.FeedEntryState;
+import org.thiesen.jfiffs.spider.business.FeedSpiderService;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ForkJoinPool;
@@ -54,11 +58,36 @@ public class FeedSpiderServiceImpl implements FeedSpiderService {
     private final FeedEntryDao feedEntryDao;
 
     private final static ForkJoinPool POOL = new ForkJoinPool(Runtime.getRuntime().availableProcessors() * 10);
+    private final CloseableHttpClient httpclient;
 
     @Inject
     public FeedSpiderServiceImpl(FeedDao feedDao, FeedEntryDao feedEntryDao) {
         this.feedDao = feedDao;
         this.feedEntryDao = feedEntryDao;
+
+        this.httpclient = configureHttpClient();
+    }
+
+    private static CloseableHttpClient configureHttpClient() {
+        final PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+        cm.setMaxTotal(200);
+        cm.setDefaultMaxPerRoute(10);
+
+        final ConnectionConfig connectionConfig = ConnectionConfig.custom()
+                .build();
+
+        final SocketConfig socketConfig = SocketConfig.custom()
+                .setSoTimeout(10000)
+                .build();
+
+        cm.setDefaultConnectionConfig(connectionConfig);
+        cm.setDefaultSocketConfig(socketConfig);
+
+        return HttpClientBuilder
+                .create()
+                .disableCookieManagement()
+                .setConnectionManager(cm)
+                .build();
     }
 
     @Override
@@ -66,10 +95,10 @@ public class FeedSpiderServiceImpl implements FeedSpiderService {
     public void run() {
         final Stopwatch stopwatch = Stopwatch.createStarted();
         POOL.submit(() -> {
-                    feedDao.listActiveFeeds()
-                            .parallelStream()
-                            .forEach(this::updateFeed);
-                }).get();
+            feedDao.listActiveFeeds()
+                    .parallelStream()
+                    .forEach(this::updateFeed);
+        }).get();
         log.info("Feed update took: {}", stopwatch.stop());
     }
 
@@ -83,18 +112,21 @@ public class FeedSpiderServiceImpl implements FeedSpiderService {
 
             feedDao.updateLastAttempt(feedDbo.getId());
 
-            final URL url = URI.create(feedDbo.getUrl()).toURL();
-            final URLConnection urlConnection = url.openConnection();
-            urlConnection.setConnectTimeout(10000);
-            urlConnection.setReadTimeout(10000);
 
-            SyndFeed feed = input.build(new XmlReader(urlConnection));
+            final HttpGet httpGet = new HttpGet(feedDbo.getUrl());
+            CloseableHttpResponse response = httpclient.execute(httpGet);
+            try {
 
-            feed.getEntries().parallelStream()
-                    .forEach(syndEntry -> handleEntry(feedDbo.getId(), syndEntry));
+                SyndFeed feed = input.build(new XmlReader(response.getEntity().getContent(), true, "UTF-8"));
 
-            feedDao.updateLastSuccess(feedDbo.getId());
+                feed.getEntries().parallelStream()
+                        .forEach(syndEntry -> handleEntry(feedDbo.getId(), syndEntry));
 
+                feedDao.updateLastSuccess(feedDbo.getId());
+
+            } finally {
+                response.close();
+            }
         } catch (IllegalArgumentException | FeedException e) {
             countFail(feedDbo);
         } catch (MalformedURLException e) {
@@ -141,12 +173,17 @@ public class FeedSpiderServiceImpl implements FeedSpiderService {
         }
 
         try {
-            final Document document = Jsoup.connect(syndEntry.getLink()).get();
-            final String linkContentHtml = document.html();
-            final String linkContentText = document.text();
+            final HttpGet httpGet = new HttpGet(syndEntry.getLink());
+            CloseableHttpResponse response = httpclient.execute(httpGet);
+           try {
+               final Document document = Jsoup.parse(response.getEntity().getContent(), "UTF-8", syndEntry.getLink());
+               final String linkContentHtml = document.html();
+               final String linkContentText = document.text();
 
-            feedEntryDao.updateLinkContentAndComplete(id, linkContentHtml, linkContentText);
-
+               feedEntryDao.updateLinkContentAndComplete(id, linkContentHtml, linkContentText);
+           } finally {
+               response.close();
+           }
 
         } catch (Exception e) {
             log.warn("Could not parse {}: {} (caused by {})", syndEntry.getLink(), e.getMessage(), Throwables.getRootCause(e).getMessage());
