@@ -13,10 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thiesen.jfiffs.classifier.business;
+package org.thiesen.jfiffs.classifier.graph;
 
-public interface ClassificationService {
-    void run();
+import org.jzenith.core.configuration.ConfigDefault;
 
-    void writeClassifications();
+public interface OrientDbConfiguration {
+
+    @ConfigDefault("remote:localhost")
+    public String getUrl();
+
+    @ConfigDefault("jfiffs")
+    public String getUser();
+
+    @ConfigDefault("jfiffs")
+    public String getPassword();
+
+    @ConfigDefault("jfiffs")
+    public String getDatabase();
+
+
+
 }

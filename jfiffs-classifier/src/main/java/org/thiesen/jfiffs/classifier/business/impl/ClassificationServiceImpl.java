@@ -17,6 +17,11 @@ package org.thiesen.jfiffs.classifier.business.impl;
 
 import com.google.common.base.Stopwatch;
 import com.google.inject.Inject;
+import com.orientechnologies.orient.core.db.ODatabaseSession;
+import com.orientechnologies.orient.core.record.OEdge;
+import com.orientechnologies.orient.core.record.OVertex;
+import com.orientechnologies.orient.core.sql.executor.OResult;
+import com.orientechnologies.orient.core.sql.executor.OResultSet;
 import lombok.extern.slf4j.Slf4j;
 import one.util.streamex.StreamEx;
 import org.HdrHistogram.ConcurrentDoubleHistogram;
@@ -25,6 +30,7 @@ import org.jooq.tools.StringUtils;
 import org.thiesen.jfiffs.classifier.business.ClassificationService;
 import org.thiesen.jfiffs.classifier.business.algorithms.Cosine;
 import org.thiesen.jfiffs.classifier.business.model.EntryWithProfile;
+import org.thiesen.jfiffs.classifier.business.model.EntryWithVertex;
 import org.thiesen.jfiffs.common.persistence.FeedEntryDao;
 
 import java.math.BigDecimal;
@@ -33,6 +39,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -40,27 +48,27 @@ public class ClassificationServiceImpl implements ClassificationService {
 
     private final FeedEntryDao dao;
 
+    private final ODatabaseSession graph;
+    private final Cosine cosine;
+
     @Inject
-    public ClassificationServiceImpl(FeedEntryDao dao) {
+    public ClassificationServiceImpl(FeedEntryDao dao, ODatabaseSession graph) {
         this.dao = dao;
+        this.graph = graph;
+
+        cosine = new Cosine(3);
+
     }
 
     @Override
     public void run() {
-        final Stopwatch stopwatch = Stopwatch.createStarted();
-        final Cosine cosine = new Cosine(3);
 
-        log.info("Precomputing profiles...");
-        final List<EntryWithProfile> entryWithProfiles = StreamEx.of(dao.listNormalizedSince(Instant.now().minus(Duration.ofDays(7)))
-                .stream())
-                .map(entry -> new EntryWithProfile(entry, cosine.getProfile(entry.getNormalizedText(), entry.getWordCount())))
-                .collect(Collectors.toCollection(LinkedList::new));
+        final List<EntryWithProfile> entryWithProfiles = precomputeProfiles(cosine);
 
-        log.info("Precomputation took {} for {} values", stopwatch.toString(), entryWithProfiles.size());
-        stopwatch.reset().start();
 
         final DoubleHistogram doubleHistogram = new ConcurrentDoubleHistogram(5);
 
+        final Stopwatch stopwatch = Stopwatch.createStarted();
         log.info("Computing distances...");
         StreamEx.cartesianPower(2, entryWithProfiles)
                 .parallel()
@@ -71,13 +79,24 @@ public class ClassificationServiceImpl implements ClassificationService {
 
 
         StreamEx.of(doubleHistogram.linearBucketValues(0.1).iterator())
-                .forEach(value -> log.info("{}-{}: {} {}%",
-                        roundDown(value.getValueIteratedFrom()), 
-                        roundUp(value.getValueIteratedTo()),
+                .forEach(value -> log.info("{}: {} {}%",
+                        roundDown(value.getValueIteratedFrom()),
                         StringUtils.leftPad(value.getCountAddedInThisIterationStep() + "", 10),
-                        roundUp((value.getCountAddedInThisIterationStep() / (double)doubleHistogram.getTotalCount()) * 100)));
+                        StringUtils.leftPad(roundUp((value.getCountAddedInThisIterationStep() / (double) doubleHistogram.getTotalCount()) * 100) + "", 6)));
+    }
 
+    private List<EntryWithProfile> precomputeProfiles(Cosine cosine) {
+        log.info("Precomputing profiles...");
+        final Stopwatch stopwatch = Stopwatch.createStarted();
 
+        final LinkedList<EntryWithProfile> entryWithProfiles = StreamEx.of(dao.listNormalizedSince(Instant.now().minus(Duration.ofDays(7)))
+                .stream())
+                .map(entry -> new EntryWithProfile(entry, cosine.getProfile(entry.getNormalizedText(), entry.getWordCount())))
+                .collect(Collectors.toCollection(LinkedList::new));
+
+        log.info("Precomputation took {} for {} values", stopwatch.toString(), entryWithProfiles.size());
+
+        return entryWithProfiles;
     }
 
     private String roundUp(double value) {
@@ -90,5 +109,68 @@ public class ClassificationServiceImpl implements ClassificationService {
         BigDecimal bigDecimal = new BigDecimal(value);
         BigDecimal roundedWithScale = bigDecimal.setScale(2, RoundingMode.HALF_DOWN);
         return roundedWithScale.toString();
+    }
+
+    @Override
+    public void writeClassifications() {
+        final List<EntryWithVertex> entryWithProfiles = precomputeProfiles(cosine)
+                .stream()
+                .map(this::addVertex)
+                .collect(Collectors.toCollection(LinkedList::new));
+
+
+        final Stopwatch stopwatch = Stopwatch.createStarted();
+        log.info("Computing distances...");
+        StreamEx.cartesianPower(2, entryWithProfiles)
+                .parallel()
+                .filter(tuple -> tuple.get(0) != tuple.get(1))
+                .filter(this::notEdgeExists)
+                .forEach(this::writeEdge);
+        log.info("Distance computation took {}", stopwatch.toString());
+    }
+
+    private void writeEdge(List<EntryWithVertex> entryWithVertices) {
+        final EntryWithVertex entry1 = entryWithVertices.get(0);
+        final EntryWithVertex entry2 = entryWithVertices.get(1);
+
+        final double similarity = cosine.similarity(entry1.getProfile(), entry2.getProfile());
+
+        createEdge(entry1, entry2, similarity);
+        createEdge(entry2, entry1, similarity);
+    }
+
+    private void createEdge(EntryWithVertex entry1, EntryWithVertex entry2, double similarity) {
+        final OEdge similarTo = graph.newEdge(entry1.getVertex(), entry2.getVertex(), "similarTo");
+        similarTo.setProperty("value", similarity);
+        similarTo.save();
+    }
+
+    private boolean notEdgeExists(List<EntryWithVertex> entryWithVertices) {
+        final OVertex a = entryWithVertices.get(0).getVertex();
+        final OVertex b = entryWithVertices.get(1).getVertex();
+
+        final OResultSet resultSet = graph.query("select from ? where out('SimilarTo').@rid contains ?", a.getIdentity(), b.getIdentity());
+
+        return !resultSet.hasNext();
+    }
+
+    private EntryWithVertex addVertex(EntryWithProfile entryWithProfile) {
+        final UUID id = entryWithProfile.getEntry().getId();
+        final OResultSet resultSet = graph.query("SELECT FROM feedEntry WHERE id = ?", id);
+
+        if (resultSet.hasNext()) {
+            final OResult result = resultSet.next();
+
+            final Optional<OVertex> vertex = result.getVertex();
+
+            return new EntryWithVertex(entryWithProfile, vertex.get());
+        }
+
+        final OVertex newVertex = graph.newVertex("FeedEntry");
+        newVertex.setProperty("title", entryWithProfile.getEntry().getTitle());
+        newVertex.setProperty("id", entryWithProfile.getEntry().getId().toString());
+        newVertex.save();
+
+        return new EntryWithVertex(entryWithProfile, newVertex);
     }
 }

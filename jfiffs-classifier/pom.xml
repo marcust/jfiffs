@@ -30,6 +30,14 @@
             <version>8.2.2</version>
         </dependency>
 
+
+        <dependency>
+            <groupId>com.orientechnologies</groupId>
+            <artifactId>orientdb-client</artifactId>
+            <version>3.0.10</version>
+        </dependency>
+
+
         <!-- Compile Time tools -->
         <dependency>
             <groupId>org.projectlombok</groupId>

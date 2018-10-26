@@ -13,10 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thiesen.jfiffs.classifier.business;
+package org.thiesen.jfiffs.classifier.business.model;
 
-public interface ClassificationService {
-    void run();
+import com.orientechnologies.orient.core.record.OVertex;
+import lombok.Data;
+import lombok.NonNull;
+import lombok.experimental.Delegate;
 
-    void writeClassifications();
+@Data
+public class EntryWithVertex {
+
+    @NonNull
+    @Delegate
+    private final EntryWithProfile entryWithProfile;
+
+    @NonNull
+    private final OVertex vertex;
+
 }
