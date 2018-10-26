@@ -134,16 +134,16 @@ public class FeedEntryDaoImpl implements FeedEntryDao {
 
     @Override
     public List<NormalizedTextFeedEntryDbo> listNormalizedSince(Instant createdAfter) {
-        final Select<Record3<UUID, String, String>> select = dslContext
+        final Select<Record4<UUID, String, String, Integer>> select = dslContext
                 .select(FeedEntryTable.ID, FeedEntryTable.TITLE,
-                        FeedEntryTable.NORMALIZED_TEXT)
+                        FeedEntryTable.NORMALIZED_TEXT, FeedEntryTable.WORD_COUNT)
                 .from(FeedEntryTable.TABLE)
                 .where(FeedEntryTable.STATE.eq(FeedEntryState.NORMALIZED))
                 .and(FeedEntryTable.CREATED.gt(createdAfter));
 
         select.execute();
 
-        return select.getResult().map(record -> new NormalizedTextFeedEntryDbo(record.component1(), record.component2(), record.component3()));
+        return select.getResult().map(record -> new NormalizedTextFeedEntryDbo(record.component1(), record.component2(), record.component3(), record.component4()));
 
     }
 }

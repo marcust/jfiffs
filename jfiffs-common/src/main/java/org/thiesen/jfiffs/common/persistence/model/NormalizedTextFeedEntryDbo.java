@@ -32,4 +32,7 @@ public class NormalizedTextFeedEntryDbo {
     @NonNull
     private final String normalizedText;
 
+    @NonNull
+    private final Integer wordCount;
+
 }

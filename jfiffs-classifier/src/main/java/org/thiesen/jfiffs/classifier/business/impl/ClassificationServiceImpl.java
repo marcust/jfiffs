@@ -53,7 +53,7 @@ public class ClassificationServiceImpl implements ClassificationService {
         log.info("Precomputing profiles...");
         final List<EntryWithProfile> entryWithProfiles = StreamEx.of(dao.listNormalizedSince(Instant.now().minus(Duration.ofDays(7)))
                 .stream())
-                .map(entry -> new EntryWithProfile(entry, cosine.getProfile(entry.getNormalizedText())))
+                .map(entry -> new EntryWithProfile(entry, cosine.getProfile(entry.getNormalizedText(), entry.getWordCount())))
                 .collect(Collectors.toCollection(LinkedList::new));
 
         log.info("Precomputation took {} for {} values", stopwatch.toString(), entryWithProfiles.size());
@@ -65,7 +65,7 @@ public class ClassificationServiceImpl implements ClassificationService {
         StreamEx.cartesianPower(2, entryWithProfiles)
                 .parallel()
                 .filter(tuple -> tuple.get(0) != tuple.get(1))
-                .map(tuple -> cosine.similarity(tuple.get(0).getProfile(), tuple.get(1).getProfile()))
+                .mapToDouble(tuple -> cosine.similarity(tuple.get(0).getProfile(), tuple.get(1).getProfile()))
                 .forEach(doubleHistogram::recordValue);
         log.info("Distance computation took {}", stopwatch.toString());
 

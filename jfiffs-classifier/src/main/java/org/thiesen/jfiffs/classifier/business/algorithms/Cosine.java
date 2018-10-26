@@ -17,7 +17,7 @@ package org.thiesen.jfiffs.classifier.business.algorithms;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import net.jcip.annotations.Immutable;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
 
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -55,12 +55,15 @@ public class Cosine {
         }
 
         double agg = 0;
-        for (Map.Entry<String, Integer> entry : small_profile.object2IntEntrySet()) {
+        final Object2IntMap.FastEntrySet<String> entries = (Object2IntMap.FastEntrySet<String>) small_profile.object2IntEntrySet();
+        final ObjectIterator<Object2IntMap.Entry<String>> entryObjectIterator = entries.fastIterator();
+        while (entryObjectIterator.hasNext()) {
+            final Object2IntMap.Entry<String> entry = entryObjectIterator.next();
             int i = large_profile.getInt(entry.getKey());
             if (i == large_profile.defaultReturnValue()) {
                 continue;
             }
-            agg += 1.0 * entry.getValue() * i;
+            agg += 1.0 * entry.getIntValue() * i;
         }
 
         return agg;
@@ -74,18 +77,13 @@ public class Cosine {
                 / (profile1.getNorm() * profile2.getNorm());
     }
 
-    public final Profile getProfile(final String string) {
-        Object2IntMap<String> shingles = new Object2IntOpenHashMap<>();
+    public final Profile getProfile(final String string, final int wordCount) {
+        final Object2IntMap<String> shingles = new Object2IntOpenHashMap<>(wordCount);
 
         String string_no_space = SPACE_REG.matcher(string).replaceAll(" ");
         for (int i = 0; i < (string_no_space.length() - k + 1); i++) {
             String shingle = string_no_space.substring(i, i + k);
-            int old = shingles.getInt(shingle);
-            if (old != shingles.defaultReturnValue()) {
-                shingles.put(shingle, old + 1);
-            } else {
-                shingles.put(shingle, 1);
-            }
+            ((Object2IntOpenHashMap<String>) shingles).addTo(shingle, 1);
         }
 
         return new Profile(shingles, norm(shingles));
