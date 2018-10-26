@@ -11,7 +11,7 @@
     <groupId>org.thiesen.jfiffs</groupId>
     <artifactId>jfiffs-normalizer</artifactId>
     <version>0.1-SNAPSHOT</version>
-    <name>jfiffs-clusterer</name>
+    <name>jfiffs-normalizer</name>
 
     <dependencies>
         <dependency>
