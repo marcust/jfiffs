@@ -49,6 +49,7 @@ import java.util.stream.Collectors;
 public class NormalizationServiceImpl implements org.thiesen.jfiffs.normalizer.business.NormalizationService {
 
     private final static Pattern NON_WORD_CHARACTERS = Pattern.compile("\\W+");
+    private final static Pattern WORD_CHARACTERS = Pattern.compile("\\w+");
 
     private final static LoadingCache<String, Set<String>> STOP_WORDS_BY_LANGUAGE = CacheBuilder.newBuilder()
             .build(new CacheLoader<String, Set<String>>() {
@@ -117,6 +118,7 @@ public class NormalizationServiceImpl implements org.thiesen.jfiffs.normalizer.b
                 .stream()
                 .map(StringUtils::lowerCase)
                 .map(word -> NON_WORD_CHARACTERS.matcher(word).replaceAll(""))
+                .filter(word -> WORD_CHARACTERS.matcher(word).matches())
                 .filter(word -> word.length() > 3) // remove small words
                 .filter(word -> notStopWord(feedEntryMeta.getLanguage(), word))
                 .map(word -> StringUtils.substring(word, 0, -3)) // poor mans stemming
