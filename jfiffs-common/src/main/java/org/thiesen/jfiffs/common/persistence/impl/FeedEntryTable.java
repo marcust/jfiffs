@@ -58,6 +58,7 @@ public class FeedEntryTable {
     static final Field<String> NORMALIZED_TEXT = field(name("normalized_text"), String.class);
     static final Field<Integer> WORD_COUNT = field(name("word_count"), Integer.class);
 
+    static final Field<String> EXTRACTED_TEXT = field(name("extracted_text"), String.class);
 
 
 }

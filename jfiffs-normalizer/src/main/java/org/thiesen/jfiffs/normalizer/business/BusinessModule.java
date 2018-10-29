@@ -16,6 +16,14 @@
 package org.thiesen.jfiffs.normalizer.business;
 
 import com.google.inject.AbstractModule;
+import org.thiesen.jfiffs.normalizer.business.impl.ContentExtractionServiceImpl;
+import org.thiesen.jfiffs.normalizer.business.impl.NormalizationServiceImpl;
 
 public class BusinessModule extends AbstractModule {
+
+    @Override
+    protected void configure() {
+        bind(NormalizationService.class).to(NormalizationServiceImpl.class);
+        bind(ContentExtractionService.class).to(ContentExtractionServiceImpl.class);
+    }
 }

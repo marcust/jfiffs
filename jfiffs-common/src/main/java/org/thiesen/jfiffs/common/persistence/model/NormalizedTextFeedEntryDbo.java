@@ -27,6 +27,9 @@ public class NormalizedTextFeedEntryDbo {
     private final UUID id;
 
     @NonNull
+    private final UUID feedId;
+
+    @NonNull
     private final String title;
 
     @NonNull

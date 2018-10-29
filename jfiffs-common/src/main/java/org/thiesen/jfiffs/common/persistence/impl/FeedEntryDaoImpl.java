@@ -21,10 +21,12 @@ import lombok.NonNull;
 import org.jooq.DSLContext;
 import org.jooq.Record3;
 import org.jooq.Record4;
+import org.jooq.Record5;
 import org.jooq.Select;
-import org.thiesen.jfiffs.common.persistence.model.FeedEntryState;
 import org.thiesen.jfiffs.common.persistence.FeedEntryDao;
+import org.thiesen.jfiffs.common.persistence.model.ExtractedTextFeedEntryDbo;
 import org.thiesen.jfiffs.common.persistence.model.FeedEntryDbo;
+import org.thiesen.jfiffs.common.persistence.model.FeedEntryState;
 import org.thiesen.jfiffs.common.persistence.model.NormalizedTextFeedEntryDbo;
 import org.thiesen.jfiffs.common.persistence.model.TextFeedEntryDbo;
 
@@ -114,7 +116,8 @@ public class FeedEntryDaoImpl implements FeedEntryDao {
                         FeedEntryTable.ENTRY_CONTENT_TEXT, FeedEntryTable.LINK_CONTENT_TEXT)
                 .from(FeedEntryTable.TABLE)
                 .where(FeedEntryTable.STATE.eq(FeedEntryState.COMPLETED))
-                .and(FeedEntryTable.CREATED.gt(createdAfter));
+                .and(FeedEntryTable.CREATED.gt(createdAfter))
+                .orderBy(FeedEntryTable.CREATED.asc());
 
         select.execute();
 
@@ -133,17 +136,51 @@ public class FeedEntryDaoImpl implements FeedEntryDao {
     }
 
     @Override
-    public List<NormalizedTextFeedEntryDbo> listNormalizedSince(Instant createdAfter) {
-        final Select<Record4<UUID, String, String, Integer>> select = dslContext
-                .select(FeedEntryTable.ID, FeedEntryTable.TITLE,
+    public List<NormalizedTextFeedEntryDbo> listNormalizedAndExtractedSince(Instant createdAfter) {
+        final Select<Record5<UUID, UUID, String, String, Integer>> select = dslContext
+                .select(FeedEntryTable.ID, FeedEntryTable.FEED_ID, FeedEntryTable.TITLE,
                         FeedEntryTable.NORMALIZED_TEXT, FeedEntryTable.WORD_COUNT)
                 .from(FeedEntryTable.TABLE)
-                .where(FeedEntryTable.STATE.eq(FeedEntryState.NORMALIZED))
-                .and(FeedEntryTable.CREATED.gt(createdAfter));
+                .where(FeedEntryTable.STATE.in(FeedEntryState.NORMALIZED, FeedEntryState.EXTRACTED))
+                .and(FeedEntryTable.CREATED.gt(createdAfter))
+                .orderBy(FeedEntryTable.CREATED.asc());
 
         select.execute();
 
-        return select.getResult().map(record -> new NormalizedTextFeedEntryDbo(record.component1(), record.component2(), record.component3(), record.component4()));
+        return select.getResult().map(record -> new NormalizedTextFeedEntryDbo(
+                record.component1(),
+                record.component2(),
+                record.component3(),
+                record.component4(),
+                record.component5()
+        ));
+    }
 
+    @Override
+    public boolean updateExtraction(UUID id, String filteredText) {
+        return dslContext.update(FeedEntryTable.TABLE)
+                .set(FeedEntryTable.EXTRACTED_TEXT, filteredText)
+                .set(FeedEntryTable.STATE, FeedEntryState.EXTRACTED)
+                .where(FeedEntryTable.ID.eq(id))
+                .execute() > 0;
+    }
+
+    @Override
+    public List<ExtractedTextFeedEntryDbo> listExtractedSince(Instant createdAfter) {
+        final Select<Record3<UUID, String, Integer>> select = dslContext
+                .select(FeedEntryTable.ID,
+                        FeedEntryTable.EXTRACTED_TEXT, FeedEntryTable.WORD_COUNT)
+                .from(FeedEntryTable.TABLE)
+                .where(FeedEntryTable.STATE.eq(FeedEntryState.EXTRACTED))
+                .and(FeedEntryTable.CREATED.gt(createdAfter))
+                .orderBy(FeedEntryTable.CREATED.asc());
+
+        select.execute();
+
+        return select.getResult().map(record -> new ExtractedTextFeedEntryDbo(
+                record.component1(),
+                record.component2(),
+                record.component3()
+        ));
     }
 }

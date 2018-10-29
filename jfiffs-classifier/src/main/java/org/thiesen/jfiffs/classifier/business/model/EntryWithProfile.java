@@ -18,15 +18,19 @@ package org.thiesen.jfiffs.classifier.business.model;
 import lombok.Data;
 import lombok.NonNull;
 import org.thiesen.jfiffs.classifier.business.algorithms.Profile;
-import org.thiesen.jfiffs.common.persistence.model.NormalizedTextFeedEntryDbo;
+import org.thiesen.jfiffs.common.persistence.model.ExtractedTextFeedEntryDbo;
 
 @Data
 public class EntryWithProfile {
 
     @NonNull
-    private final NormalizedTextFeedEntryDbo entry;
+    private final ExtractedTextFeedEntryDbo entry;
 
     @NonNull
     private final Profile profile;
+
+    public boolean hasProfileOfUsefulSize() {
+        return profile.getProfile().size() > 50;
+    }
 
 }

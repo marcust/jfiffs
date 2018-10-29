@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class NormalizationServiceImpl implements org.thiesen.jfiffs.normalizer.business.NormalizationService {
 
-    private final static Pattern NON_WORD_CHARACTERS = Pattern.compile("\\W+");
+    private final static Pattern IN_WORD_CHARACTERS = Pattern.compile("'");
     private final static Pattern WORD_CHARACTERS = Pattern.compile("\\w+");
 
     private final static LoadingCache<String, Set<String>> STOP_WORDS_BY_LANGUAGE = CacheBuilder.newBuilder()
@@ -62,7 +62,7 @@ public class NormalizationServiceImpl implements org.thiesen.jfiffs.normalizer.b
 
                     return IOUtils.readLines(resourceAsStream, StandardCharsets.UTF_8)
                             .stream()
-                            .map(line -> NON_WORD_CHARACTERS.matcher(line).replaceAll(""))
+                            .map(line -> IN_WORD_CHARACTERS.matcher(line).replaceAll(""))
                             .map(StringUtils::lowerCase)
                             .collect(Collectors.toSet());
 
@@ -117,7 +117,7 @@ public class NormalizationServiceImpl implements org.thiesen.jfiffs.normalizer.b
         final String normalized = feedEntryMeta.getWordList()
                 .stream()
                 .map(StringUtils::lowerCase)
-                .map(word -> NON_WORD_CHARACTERS.matcher(word).replaceAll(""))
+                .map(word -> IN_WORD_CHARACTERS.matcher(word).replaceAll(""))
                 .filter(word -> WORD_CHARACTERS.matcher(word).matches())
                 .filter(word -> word.length() > 3) // remove small words
                 .filter(word -> notStopWord(feedEntryMeta.getLanguage(), word))

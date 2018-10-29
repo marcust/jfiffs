@@ -45,7 +45,8 @@
         <module>jfiffs-spider</module>
         <module>jfiffs-normalizer</module>
         <module>jfiffs-classifier</module>
-    </modules>
+    <module>jfiffs-server</module>
+  </modules>
 
     <build>
         <pluginManagement>

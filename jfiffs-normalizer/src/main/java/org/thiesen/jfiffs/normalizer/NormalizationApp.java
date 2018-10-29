@@ -19,6 +19,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import org.jzenith.core.JZenith;
 import org.thiesen.jfiffs.normalizer.business.BusinessModule;
+import org.thiesen.jfiffs.normalizer.business.ContentExtractionService;
 import org.thiesen.jfiffs.normalizer.business.impl.NormalizationServiceImpl;
 import org.thiesen.jfiffs.common.persistence.PersistenceModule;
 import org.thiesen.jfiffs.common.persistence.migration.FlywayMigration;
@@ -30,6 +31,9 @@ public class NormalizationApp {
 
     @Inject
     private NormalizationServiceImpl normalization;
+
+    @Inject
+    private ContentExtractionService contentExtractionService;
 
     public static void main(String[] args) {
         final Injector injector = JZenith.application(args)
@@ -47,7 +51,7 @@ public class NormalizationApp {
         migration.migrate();
 
         normalization.run();
-
+        contentExtractionService.run();
     }
 
 }

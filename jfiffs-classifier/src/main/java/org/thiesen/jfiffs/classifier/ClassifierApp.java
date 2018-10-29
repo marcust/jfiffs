@@ -19,7 +19,6 @@ import com.google.inject.Injector;
 import org.jzenith.core.JZenith;
 import org.thiesen.jfiffs.classifier.business.BusinessModule;
 import org.thiesen.jfiffs.classifier.business.ClassificationService;
-import org.thiesen.jfiffs.classifier.graph.GraphModule;
 import org.thiesen.jfiffs.common.persistence.PersistenceModule;
 import org.thiesen.jfiffs.common.persistence.migration.FlywayMigration;
 
@@ -35,7 +34,7 @@ public class ClassifierApp {
 
     public static void main(String[] args) {
         final Injector injector = JZenith.application(args)
-                .withModules(new PersistenceModule(), new GraphModule(), new BusinessModule())
+                .withModules(new PersistenceModule(), new BusinessModule())
                 .createInjectorForTesting();
 
         final ClassifierApp app = new ClassifierApp();

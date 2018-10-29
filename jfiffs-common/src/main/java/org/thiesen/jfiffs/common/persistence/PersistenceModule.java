@@ -25,6 +25,7 @@ import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 import org.jzenith.core.configuration.ConfigurationProvider;
 import org.postgresql.ds.PGSimpleDataSource;
+import org.thiesen.jfiffs.common.persistence.impl.EntrySimilarityDaoImpl;
 import org.thiesen.jfiffs.common.persistence.impl.FeedDaoImpl;
 import org.thiesen.jfiffs.common.persistence.impl.FeedEntryDaoImpl;
 import org.thiesen.jfiffs.common.persistence.migration.FlywayMigration;
@@ -40,6 +41,7 @@ public class PersistenceModule extends AbstractModule {
 
         bind(FeedDao.class).to(FeedDaoImpl.class).asEagerSingleton();
         bind(FeedEntryDao.class).to(FeedEntryDaoImpl.class).asEagerSingleton();
+        bind(EntrySimilarityDao.class).to(EntrySimilarityDaoImpl.class).asEagerSingleton();
 
         bind(DSLContext.class).toProvider(new DslContextProvider()).asEagerSingleton();
 

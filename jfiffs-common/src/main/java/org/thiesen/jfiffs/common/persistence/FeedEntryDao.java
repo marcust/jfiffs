@@ -15,11 +15,13 @@
  */
 package org.thiesen.jfiffs.common.persistence;
 
+import org.thiesen.jfiffs.common.persistence.model.ExtractedTextFeedEntryDbo;
 import org.thiesen.jfiffs.common.persistence.model.FeedEntryDbo;
 import org.thiesen.jfiffs.common.persistence.model.NormalizedTextFeedEntryDbo;
 import org.thiesen.jfiffs.common.persistence.model.TextFeedEntryDbo;
 
 import java.time.Instant;
+import java.util.BitSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -39,5 +41,9 @@ public interface FeedEntryDao {
 
     boolean updateNormalization(UUID id, String language, Integer wordCount, String normalizedText);
 
-    List<NormalizedTextFeedEntryDbo> listNormalizedSince(Instant createdAfter);
+    List<NormalizedTextFeedEntryDbo> listNormalizedAndExtractedSince(Instant createdAfter);
+
+    boolean updateExtraction(UUID id, String filteredText);
+
+    List<ExtractedTextFeedEntryDbo> listExtractedSince(Instant createdAfter);
 }
