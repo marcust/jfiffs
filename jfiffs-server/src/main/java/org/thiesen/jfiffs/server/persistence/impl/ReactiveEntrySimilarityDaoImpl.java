@@ -16,8 +16,12 @@
 package org.thiesen.jfiffs.server.persistence.impl;
 
 import com.google.common.collect.ImmutableList;
+import io.reactiverse.reactivex.pgclient.PgIterator;
+import io.reactiverse.reactivex.pgclient.PgPool;
+import io.reactiverse.reactivex.pgclient.PgRowSet;
 import io.reactiverse.reactivex.pgclient.Row;
 import io.reactivex.Single;
+import one.util.streamex.StreamEx;
 import org.jooq.DSLContext;
 import org.jooq.Select;
 import org.jzenith.postgresql.PostgresqlClient;
@@ -38,11 +42,13 @@ import static org.thiesen.jfiffs.common.persistence.tables.EntrySimilarityTable.
 
 public class ReactiveEntrySimilarityDaoImpl implements ReactiveEntrySimilarityDao {
 
+    private final PgPool pgPool;
     private final PostgresqlClient client;
     private final DSLContext dslContext;
 
     @Inject
-    public ReactiveEntrySimilarityDaoImpl(PostgresqlClient client, DSLContext dslContext) {
+    public ReactiveEntrySimilarityDaoImpl(PgPool pgPool, PostgresqlClient client, DSLContext dslContext) {
+        this.pgPool = pgPool;
         this.client = client;
         this.dslContext = dslContext;
     }
@@ -58,11 +64,19 @@ public class ReactiveEntrySimilarityDaoImpl implements ReactiveEntrySimilarityDa
         final Select<?> count = dslContext.select(count())
                 .from(EntrySimilarityTable.TABLE);
 
+        client.execute(select);
+
         return Single.zip(
                 client.executeForSingleRow(count).toSingle(),
-                client.stream(select, offset, limit).toList(),
+                client.execute(select),
                 (countRow, valueRows) -> new Page<>(offset, limit, countRow.getLong(0), mapToEntries(valueRows)));
 
+    }
+
+    private List<EntrySimilarityDbo> mapToEntries(PgRowSet valueRows) {
+        return StreamEx.of(valueRows.iterator().getDelegate())
+                .map((io.reactiverse.pgclient.Row row) -> mapToEntry(Row.newInstance(row)))
+                .collect(ImmutableList.toImmutableList());
     }
 
     private List<EntrySimilarityDbo> mapToEntries(List<Row> valueRows) {

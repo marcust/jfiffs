@@ -27,7 +27,7 @@ public class SimilarEntryMapper {
 
     private SimilarEntryResponse mapToSimilarEntryResponse(SimilarEntryPair similarEntryPair) {
         return new SimilarEntryResponse(similarEntryPair.getSimilarity(),
-                similarEntryPair.getFirstTitle(), similarEntryPair.getFirstLink(),
-                similarEntryPair.getSecondTitle(), similarEntryPair.getSecondLink());
+                similarEntryPair.getFirstId(), similarEntryPair.getFirstTitle(), similarEntryPair.getFirstLink(),
+                similarEntryPair.getSecondId(), similarEntryPair.getSecondTitle(), similarEntryPair.getSecondLink());
     }
 }

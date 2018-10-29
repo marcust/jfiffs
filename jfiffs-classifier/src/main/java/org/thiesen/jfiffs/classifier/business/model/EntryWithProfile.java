@@ -30,7 +30,7 @@ public class EntryWithProfile {
     private final Profile profile;
 
     public boolean hasProfileOfUsefulSize() {
-        return profile.getProfile().size() > 50;
+        return profile.getProfile().size() > 100;
     }
 
 }

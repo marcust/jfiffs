@@ -117,7 +117,6 @@
             <outline type="rss" text="Google Research Blog" title="Google Research Blog" xmlUrl="http://googleresearch.blogspot.com/atom.xml" htmlUrl="http://ai.googleblog.com/"/>
             <outline type="rss" text="Yegor Bugayenko" title="Yegor Bugayenko" xmlUrl="http://www.yegor256.com/rss.xml" htmlUrl="https://www.yegor256.com/"/>
             <outline type="rss" text="CoreOS Blog" title="CoreOS Blog" xmlUrl="http://coreos.com/atom.xml" htmlUrl="http://coreos.com/blog"/>
-            <outline type="rss" text="The Apache Software Foundation Blog" title="The Apache Software Foundation Blog" xmlUrl="https://blogs.apache.org/foundation/feed/entries/atom" htmlUrl="https://blogs.apache.org/foundation/"/>
             <outline type="rss" text="OverOps Blog" title="OverOps Blog" xmlUrl="http://blog.takipi.com/feed/" htmlUrl="https://blog.takipi.com"/>
         </outline>
         <outline text="Politik" title="Politik">

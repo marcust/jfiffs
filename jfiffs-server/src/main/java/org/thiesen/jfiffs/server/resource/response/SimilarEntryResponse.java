@@ -18,15 +18,19 @@ package org.thiesen.jfiffs.server.resource.response;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.util.UUID;
+
 @Data
 @AllArgsConstructor
 public class SimilarEntryResponse {
 
     private Double similarity;
 
+    private UUID firstId;
     private String firstTitle;
     private String firstLink;
 
+    private UUID secondId;
     private String secondTitle;
     private String secondLink;
 

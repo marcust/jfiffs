@@ -61,7 +61,7 @@ public class SimilarEntryServiceImpl implements SimilarEntryService {
 
         return Single.zip(similaritySingle, firstDboSingle, secondDboSingle,
                 (similarity, first, second) -> new SimilarEntryPair(similarity,
-                        first.getTitle(), first.getLink(),
-                        second.getTitle(), second.getLink()));
+                        first.getId(), first.getTitle(), first.getLink(),
+                        second.getId(), second.getTitle(), second.getLink()));
     }
 }
