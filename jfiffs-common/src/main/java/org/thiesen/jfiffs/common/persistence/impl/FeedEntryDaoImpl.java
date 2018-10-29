@@ -168,9 +168,11 @@ public class FeedEntryDaoImpl implements FeedEntryDao {
 
     @Override
     public List<ExtractedTextFeedEntryDbo> listExtractedSince(Instant createdAfter) {
-        final Select<Record3<UUID, String, Integer>> select = dslContext
+        final Select<Record4<UUID, String, String, Integer>> select = dslContext
                 .select(FeedEntryTable.ID,
-                        FeedEntryTable.EXTRACTED_TEXT, FeedEntryTable.WORD_COUNT)
+                        FeedEntryTable.EXTRACTED_TEXT,
+                        FeedEntryTable.LINK,
+                        FeedEntryTable.WORD_COUNT)
                 .from(FeedEntryTable.TABLE)
                 .where(FeedEntryTable.STATE.eq(FeedEntryState.EXTRACTED))
                 .and(FeedEntryTable.CREATED.gt(createdAfter))
@@ -181,7 +183,8 @@ public class FeedEntryDaoImpl implements FeedEntryDao {
         return select.getResult().map(record -> new ExtractedTextFeedEntryDbo(
                 record.component1(),
                 record.component2(),
-                record.component3()
+                record.component3(),
+                record.component4()
         ));
     }
 }

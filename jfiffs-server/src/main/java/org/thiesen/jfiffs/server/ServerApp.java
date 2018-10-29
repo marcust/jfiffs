@@ -32,6 +32,7 @@ public class ServerApp {
                 .withConfiguration("postgresql.database", "jfiffs")
                 .withConfiguration("postgresql.username", "jfiffs")
                 .withConfiguration("postgresql.password", "jfiffs")
+                .withConfiguration("rest.port", 8181)
                 .run();
     }
 

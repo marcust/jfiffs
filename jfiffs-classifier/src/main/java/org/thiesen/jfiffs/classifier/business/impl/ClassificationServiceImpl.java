@@ -30,6 +30,7 @@ import org.thiesen.jfiffs.common.persistence.FeedEntryDao;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.LinkedList;
@@ -128,13 +129,24 @@ public class ClassificationServiceImpl implements ClassificationService {
 
     }
 
-    private void computeAndWriteEntry(List<EntryWithProfile> entryWithVertices) {
-        final EntryWithProfile first = entryWithVertices.get(0);
-        final EntryWithProfile second = entryWithVertices.get(1);
+    private void computeAndWriteEntry(List<EntryWithProfile> entryWithProfile) {
+        final EntryWithProfile first = entryWithProfile.get(0);
+        final EntryWithProfile second = entryWithProfile.get(1);
 
         double similarity = cosine.similarity(first.getProfile(), second.getProfile());
+        // Nan similarity to zero
         if (Double.isNaN(similarity)) {
             similarity = 0.0D;
+        }
+
+        // High similarity from same host is same entry
+        if (similarity > 0.99D) {
+            final URI firstEntryUri = URI.create(first.getEntry().getLink());
+            final URI secondEntryUri = URI.create(second.getEntry().getLink());
+
+            if (firstEntryUri.getHost().equals(secondEntryUri.getHost())) {
+                similarity = 0;
+            }
         }
 
         similarityDao.insert(first.getEntry().getId(), second.getEntry().getId(), similarity);

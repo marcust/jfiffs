@@ -18,6 +18,7 @@ package org.thiesen.jfiffs.common.persistence.model;
 import lombok.Data;
 import lombok.NonNull;
 
+import javax.annotation.Nonnull;
 import java.util.UUID;
 
 @Data
@@ -28,6 +29,9 @@ public class ExtractedTextFeedEntryDbo {
 
     @NonNull
     private final String extractedText;
+
+    @Nonnull
+    private final String link;
 
     @NonNull
     private final Integer wordCount;
