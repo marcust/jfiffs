@@ -13,24 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thiesen.jfiffs.common.persistence.model;
+package org.thiesen.jfiffs.server.resource.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NonNull;
-
-import java.util.UUID;
 
 @Data
 @AllArgsConstructor
-public class EntrySimilarityDbo {
+public class SimilarEntryResponse {
 
-    @NonNull
-    private final UUID firstId;
+    private Double similarity;
 
-    @NonNull
-    private final UUID secondId;
+    private String firstTitle;
+    private String firstLink;
 
-    private final double similarity;
+    private String secondTitle;
+    private String secondLink;
 
 }

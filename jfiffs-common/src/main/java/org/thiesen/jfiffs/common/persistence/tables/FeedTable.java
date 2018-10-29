@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thiesen.jfiffs.common.persistence.impl;
+package org.thiesen.jfiffs.common.persistence.tables;
 
 import lombok.experimental.UtilityClass;
 import org.jooq.DataType;
@@ -21,6 +21,7 @@ import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Table;
 import org.jooq.impl.SQLDataType;
+import org.thiesen.jfiffs.common.persistence.impl.InstantConverter;
 import org.thiesen.jfiffs.common.persistence.model.FeedState;
 
 import java.time.Instant;
@@ -33,22 +34,22 @@ import static org.jooq.impl.DSL.table;
 @UtilityClass
 public class FeedTable {
 
-    static final DataType<Instant> INSTANT =
+    public static final DataType<Instant> INSTANT =
             SQLDataType.TIMESTAMP.asConvertedDataType(new InstantConverter());
 
-    static final Table<Record> TABLE = table(name("feed"));
+    public static final Table<Record> TABLE = table(name("feed"));
 
-    static final Field<UUID> ID = field(name("id"), UUID.class);
-    static final Field<String> TITLE = field(name("title"), String.class);
-    static final Field<String> URL = field(name("url"), String.class);
+    public static final Field<UUID> ID = field(name("id"), UUID.class);
+    public static final Field<String> TITLE = field(name("title"), String.class);
+    public static final Field<String> URL = field(name("url"), String.class);
 
-    static final Field<FeedState> STATE = field(name("state"), FeedState.class);
+    public static final Field<FeedState> STATE = field(name("state"), FeedState.class);
 
-    static final Field<Long> FAIL_COUNT = field(name("fail_count"), Long.class);
+    public static final Field<Long> FAIL_COUNT = field(name("fail_count"), Long.class);
 
-    static final Field<Instant> LAST_ATTEMPT = field(name("last_attempt"), INSTANT);
-    static final Field<Instant> LAST_SUCCESS = field(name("last_success"), INSTANT);
-    static final Field<Instant> LAST_FAIL = field(name("last_fail"), INSTANT);
+    public static final Field<Instant> LAST_ATTEMPT = field(name("last_attempt"), INSTANT);
+    public static final Field<Instant> LAST_SUCCESS = field(name("last_success"), INSTANT);
+    public static final Field<Instant> LAST_FAIL = field(name("last_fail"), INSTANT);
 
-    static final Field<Instant> CREATED = field(name("created"), INSTANT);
+    public static final Field<Instant> CREATED = field(name("created"), INSTANT);
 }

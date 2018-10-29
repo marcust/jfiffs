@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.thiesen.jfiffs</groupId>
+        <artifactId>root-pom</artifactId>
+        <version>0.1-SNAPSHOT</version>
+    </parent>
+
+    <groupId>org.thiesen.jfiffs</groupId>
+    <artifactId>jfiffs-server</artifactId>
+    <version>0.1-SNAPSHOT</version>
+    <name>jfiffs-server</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.thiesen.jfiffs</groupId>
+            <artifactId>jfiffs-common</artifactId>
+            <version>0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jzenith</groupId>
+            <artifactId>jzenith-postgresql</artifactId>
+            <version>0.2-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jzenith</groupId>
+            <artifactId>jzenith-rest</artifactId>
+            <version>0.2-SNAPSHOT</version>
+        </dependency>
+
+
+        <!-- Compile Time tools -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs-annotations</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>3.8.1</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+</project>

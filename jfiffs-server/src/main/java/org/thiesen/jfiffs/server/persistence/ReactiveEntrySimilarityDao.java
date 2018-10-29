@@ -13,24 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thiesen.jfiffs.common.persistence.model;
+package org.thiesen.jfiffs.server.persistence;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NonNull;
+import io.reactivex.Single;
+import org.jzenith.rest.model.Page;
+import org.thiesen.jfiffs.common.persistence.model.EntrySimilarityDbo;
 
-import java.util.UUID;
-
-@Data
-@AllArgsConstructor
-public class EntrySimilarityDbo {
-
-    @NonNull
-    private final UUID firstId;
-
-    @NonNull
-    private final UUID secondId;
-
-    private final double similarity;
-
+public interface ReactiveEntrySimilarityDao {
+    Single<Page<EntrySimilarityDbo>> listSimilarEntries(Integer offset, Integer limit);
 }

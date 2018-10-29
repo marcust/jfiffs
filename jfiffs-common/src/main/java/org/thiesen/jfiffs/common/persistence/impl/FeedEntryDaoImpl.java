@@ -29,6 +29,7 @@ import org.thiesen.jfiffs.common.persistence.model.FeedEntryDbo;
 import org.thiesen.jfiffs.common.persistence.model.FeedEntryState;
 import org.thiesen.jfiffs.common.persistence.model.NormalizedTextFeedEntryDbo;
 import org.thiesen.jfiffs.common.persistence.model.TextFeedEntryDbo;
+import org.thiesen.jfiffs.common.persistence.tables.FeedEntryTable;
 
 import java.time.Instant;
 import java.util.Arrays;

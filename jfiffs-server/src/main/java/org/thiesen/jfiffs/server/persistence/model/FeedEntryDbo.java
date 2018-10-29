@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thiesen.jfiffs.common.persistence.model;
+package org.thiesen.jfiffs.server.persistence.model;
+
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,14 +24,15 @@ import java.util.UUID;
 
 @Data
 @AllArgsConstructor
-public class EntrySimilarityDbo {
+public class FeedEntryDbo {
+    @NonNull
+    private final UUID id;
 
     @NonNull
-    private final UUID firstId;
+    private final String title;
 
     @NonNull
-    private final UUID secondId;
+    private final String link;
 
-    private final double similarity;
 
 }

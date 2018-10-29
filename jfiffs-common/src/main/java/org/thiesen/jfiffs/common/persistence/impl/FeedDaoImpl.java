@@ -23,6 +23,7 @@ import org.jooq.Select;
 import org.thiesen.jfiffs.common.persistence.FeedDao;
 import org.thiesen.jfiffs.common.persistence.model.FeedState;
 import org.thiesen.jfiffs.common.persistence.model.FeedDbo;
+import org.thiesen.jfiffs.common.persistence.tables.FeedTable;
 
 import java.time.Instant;
 import java.util.Arrays;

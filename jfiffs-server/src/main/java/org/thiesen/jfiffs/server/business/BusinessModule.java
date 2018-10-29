@@ -13,24 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thiesen.jfiffs.common.persistence.model;
+package org.thiesen.jfiffs.server.business;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NonNull;
+import com.google.inject.AbstractModule;
+import org.thiesen.jfiffs.server.business.impl.SimilarEntryServiceImpl;
 
-import java.util.UUID;
+public class BusinessModule extends AbstractModule {
 
-@Data
-@AllArgsConstructor
-public class EntrySimilarityDbo {
+    @Override
+    protected void configure() {
+        bind(SimilarEntryService.class).to(SimilarEntryServiceImpl.class);
 
-    @NonNull
-    private final UUID firstId;
-
-    @NonNull
-    private final UUID secondId;
-
-    private final double similarity;
-
+    }
 }

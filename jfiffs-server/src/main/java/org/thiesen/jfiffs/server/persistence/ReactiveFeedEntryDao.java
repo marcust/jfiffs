@@ -13,24 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thiesen.jfiffs.common.persistence.model;
+package org.thiesen.jfiffs.server.persistence;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NonNull;
+import io.reactivex.Maybe;
+import org.thiesen.jfiffs.server.persistence.model.FeedEntryDbo;
 
 import java.util.UUID;
 
-@Data
-@AllArgsConstructor
-public class EntrySimilarityDbo {
+public interface ReactiveFeedEntryDao {
 
-    @NonNull
-    private final UUID firstId;
-
-    @NonNull
-    private final UUID secondId;
-
-    private final double similarity;
+    Maybe<FeedEntryDbo> getById(UUID firstId);
 
 }
