@@ -15,11 +15,22 @@
  */
 package org.thiesen.jfiffs.common.persistence;
 
+import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletionStage;
+import java.util.stream.Stream;
 
 public interface EntrySimilarityDao {
 
     boolean exists(UUID id, UUID id1);
 
     void insert(UUID id, UUID id1, double similarity);
+
+    CompletionStage<Integer> insert(List<List<Object>> values);
+
+    Integer count();
+
+    Stream<Pair<UUID, UUID>> load();
 }

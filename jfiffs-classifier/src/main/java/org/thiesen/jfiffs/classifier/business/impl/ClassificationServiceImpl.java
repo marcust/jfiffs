@@ -16,15 +16,22 @@
 package org.thiesen.jfiffs.classifier.business.impl;
 
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
+import cyclops.data.Vector;
+import cyclops.futurestream.LazyReact;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashBigSet;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import one.util.streamex.StreamEx;
 import org.HdrHistogram.ConcurrentDoubleHistogram;
 import org.HdrHistogram.DoubleHistogram;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.tools.StringUtils;
 import org.thiesen.jfiffs.classifier.business.ClassificationService;
 import org.thiesen.jfiffs.classifier.business.algorithms.Cosine;
 import org.thiesen.jfiffs.classifier.business.model.EntryWithProfile;
+import org.thiesen.jfiffs.classifier.business.model.SimilarityEntry;
 import org.thiesen.jfiffs.common.persistence.EntrySimilarityDao;
 import org.thiesen.jfiffs.common.persistence.FeedEntryDao;
 
@@ -35,11 +42,17 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
 @Slf4j
 public class ClassificationServiceImpl implements ClassificationService {
+
+    private final static ForkJoinPool POOL = new ForkJoinPool(Runtime.getRuntime().availableProcessors() * 2);
 
     private final FeedEntryDao dao;
 
@@ -112,26 +125,38 @@ public class ClassificationServiceImpl implements ClassificationService {
         final List<EntryWithProfile> entryWithProfiles = precomputeProfiles(cosine);
 
         final Stopwatch stopwatch = Stopwatch.createStarted();
+        log.info("Loading existing distances...");
+        final int batch_size = 1000;
+        final Integer count = similarityDao.count();
+        final Set<Pair<UUID,UUID>> existingDistances = similarityDao.load()
+                .collect(Collectors.toCollection(ObjectOpenHashBigSet::new));
+        log.info("Distance loading took {}", stopwatch.toString());
+
+        stopwatch.reset().start();
         log.info("Computing distances...");
-        StreamEx.cartesianPower(2, entryWithProfiles)
-                .parallel()
+        final StreamEx<SimilarityEntry> stream = StreamEx.cartesianPower(2, entryWithProfiles)
+                .parallel(POOL)
                 .filter(tuple -> tuple.get(0) != tuple.get(1))
-                .filter(this::notEntryExists)
-                .forEach(this::computeAndWriteEntry);
+                .map(tuple -> Pair.of(tuple.get(0), tuple.get(1)))
+                .filter(tuple -> !existingDistances.contains(tuple))
+                .map(this::computeSimilarty);
+
+        new LazyReact(POOL)
+                .fromStream(stream)
+                .grouped(100)
+                .map(this::writeEntriesBatch)
+                .forEach(stage -> stage.thenAccept(written -> {
+                    if (written > 0) {
+                        log.info("Wrote {}", written);
+                    }
+                }));
+
         log.info("Distance computation took {}", stopwatch.toString());
     }
 
-    private boolean notEntryExists(List<EntryWithProfile> entryWithProfiles) {
-        final EntryWithProfile first = entryWithProfiles.get(0);
-        final EntryWithProfile second = entryWithProfiles.get(0);
-
-        return !similarityDao.exists(first.getEntry().getId(), second.getEntry().getId());
-
-    }
-
-    private void computeAndWriteEntry(List<EntryWithProfile> entryWithProfile) {
-        final EntryWithProfile first = entryWithProfile.get(0);
-        final EntryWithProfile second = entryWithProfile.get(1);
+    private SimilarityEntry computeSimilarty(Pair<EntryWithProfile, EntryWithProfile> pair) {
+        final EntryWithProfile first = pair.getLeft();
+        final EntryWithProfile second = pair.getRight();
 
         double similarity = cosine.similarity(first.getProfile(), second.getProfile());
         // Nan similarity to zero
@@ -149,7 +174,21 @@ public class ClassificationServiceImpl implements ClassificationService {
             }
         }
 
-        similarityDao.insert(first.getEntry().getId(), second.getEntry().getId(), similarity);
+        return new SimilarityEntry(first, second, similarity);
+    }
+
+    private boolean notEntryExists(@NonNull final Pair<EntryWithProfile, EntryWithProfile> entryWithProfiles) {
+        final EntryWithProfile first = entryWithProfiles.getLeft();
+        final EntryWithProfile second = entryWithProfiles.getRight();
+
+        return !similarityDao.exists(first.getEntry().getId(), second.getEntry().getId());
+    }
+
+    private CompletionStage<Integer> writeEntriesBatch(@NonNull final Vector<SimilarityEntry> similarityEntries) {
+        if (similarityEntries.isEmpty()) {
+            return CompletableFuture.completedFuture(0);
+        }
+        return similarityDao.insert(similarityEntries.stream().map(SimilarityEntry::toValues).collect(ImmutableList.toImmutableList()));
     }
 
 }

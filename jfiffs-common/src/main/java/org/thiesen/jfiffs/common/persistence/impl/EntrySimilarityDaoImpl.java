@@ -18,11 +18,18 @@ package org.thiesen.jfiffs.common.persistence.impl;
 import com.google.inject.Inject;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jooq.DSLContext;
+import org.jooq.InsertValuesStep3;
+import org.jooq.Record;
+import org.jooq.Record2;
+import org.jooq.Select;
 import org.thiesen.jfiffs.common.persistence.EntrySimilarityDao;
 import org.thiesen.jfiffs.common.persistence.tables.EntrySimilarityTable;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletionStage;
+import java.util.stream.Stream;
 
 public class EntrySimilarityDaoImpl implements EntrySimilarityDao {
 
@@ -41,7 +48,7 @@ public class EntrySimilarityDaoImpl implements EntrySimilarityDao {
                 .where(EntrySimilarityTable.FIRST_ID.eq(ids.getLeft())).and(EntrySimilarityTable.SECOND_ID.eq(ids.getRight())));
     }
 
-    private Pair<UUID, UUID> sortedIds(UUID id, UUID id1) {
+    public static Pair<UUID, UUID> sortedIds(UUID id, UUID id1) {
         if (id.compareTo(id1) > 0) {
             return Pair.of(id, id1);
         } else {
@@ -58,6 +65,30 @@ public class EntrySimilarityDaoImpl implements EntrySimilarityDao {
                 .values(Arrays.asList(ids.getLeft(), ids.getRight(), similarity))
                 .onDuplicateKeyIgnore()
                 .execute();
+    }
 
+    @Override
+    public CompletionStage<Integer> insert(List<List<Object>> values) {
+        final InsertValuesStep3<Record, UUID, UUID, Double> insert = dslContext.insertInto(EntrySimilarityTable.TABLE)
+                .columns(EntrySimilarityTable.FIRST_ID, EntrySimilarityTable.SECOND_ID, EntrySimilarityTable.SIMILARITY);
+
+        values.forEach(insert::values);
+
+        return insert.onDuplicateKeyIgnore()
+                .executeAsync();
+    }
+
+    @Override
+    public Integer count() {
+        return dslContext.fetchCount(EntrySimilarityTable.TABLE);
+    }
+
+    @Override
+    public Stream<Pair<UUID, UUID>> load() {
+        final Select<Record2<UUID, UUID>> select = dslContext.select(EntrySimilarityTable.FIRST_ID, EntrySimilarityTable.SECOND_ID)
+                .from(EntrySimilarityTable.TABLE);
+
+        return select.fetchLazy().stream()
+                .map(record -> Pair.of((UUID)record.getValue(0), (UUID)record.getValue(1)));
     }
 }

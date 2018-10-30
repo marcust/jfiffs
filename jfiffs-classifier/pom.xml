@@ -29,6 +29,16 @@
             <artifactId>fastutil</artifactId>
             <version>8.2.2</version>
         </dependency>
+        <dependency>
+            <groupId>com.oath.cyclops</groupId>
+            <artifactId>cyclops</artifactId>
+            <version>10.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.oath.cyclops</groupId>
+            <artifactId>cyclops-futurestream</artifactId>
+            <version>10.0.1</version>
+        </dependency>
 
 
         <!-- Compile Time tools -->

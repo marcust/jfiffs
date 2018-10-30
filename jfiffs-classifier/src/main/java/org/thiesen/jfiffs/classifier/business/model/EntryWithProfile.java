@@ -20,6 +20,8 @@ import lombok.NonNull;
 import org.thiesen.jfiffs.classifier.business.algorithms.Profile;
 import org.thiesen.jfiffs.common.persistence.model.ExtractedTextFeedEntryDbo;
 
+import java.util.Arrays;
+
 @Data
 public class EntryWithProfile {
 
@@ -32,5 +34,6 @@ public class EntryWithProfile {
     public boolean hasProfileOfUsefulSize() {
         return profile.getProfile().size() > 125;
     }
+
 
 }
