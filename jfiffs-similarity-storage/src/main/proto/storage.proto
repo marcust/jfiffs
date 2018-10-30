@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "org.thiesen.jfiffs.storage.proto";
+option java_outer_classname = "StorageProto";
+package org.thiesen.jfiffs.storage.proto;
+
+service Storage {
+    rpc StoreSimilarity (StoreRequest) returns (Reply) {}
+
+    rpc DeleteSimilarity (DeleteRequest) returns (Reply) {}
+
+    rpc GetSimilarity (GetRequest) returns (GetReply) {}
+}
+
+message UUID {
+    sfixed64 mostSigBits = 1;
+    sfixed64 leastSigBits = 2;
+}
+
+message Key {
+    UUID left = 1;
+    UUID right = 2;
+}
+
+message StoreRequest {
+    Key key = 1;
+    double similarity = 2;
+}
+
+message DeleteRequest {
+    Key key = 1;
+}
+
+message GetRequest {
+    Key key = 1;
+}
+
+message GetReply {
+    Status status = 1;
+    double similarity = 2;
+}
+
+enum Status {
+    UNKNOWN = 0;
+    OK = 1;
+    ERROR = 2;
+}
+
+message Reply {
+    Status status = 1;
+}

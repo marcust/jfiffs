@@ -46,6 +46,7 @@
         <module>jfiffs-normalizer</module>
         <module>jfiffs-classifier</module>
     <module>jfiffs-server</module>
+    <module>jfiffs-similarity-storage</module>
   </modules>
 
     <build>

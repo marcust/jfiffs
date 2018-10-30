@@ -41,7 +41,6 @@ public class ClassifierApp {
         injector.injectMembers(app);
 
         app.run(args);
-
     }
 
     private void run(String[] args) {
